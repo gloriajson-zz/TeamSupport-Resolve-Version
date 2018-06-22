@@ -91,19 +91,6 @@ function createModal(){
     modalBody.id = "resolve-body";
     modalContent.appendChild(modalBody);
 
-    /*var dropdown = document.createElement("div");
-    dropdown.className = "form-group";
-    var dlabel = document.createElement("label");
-    dlabel.setAttribute("for","form-select");
-    dlabel.innerHTML = "Select a Resolved Version";
-    var dselect = document.createElement("select");
-    dselect.className = "form-control";
-    dselect.setAttribute("id", "form-select");
-
-    dropdown.appendChild(dlabel);
-    dropdown.appendChild(dselect);
-    modalBody.appendChild(dropdown);*/
-
     //create modal footer
     var modalFooter = document.createElement("div");
     modalFooter.className = "modal-footer";
@@ -129,7 +116,7 @@ function createModal(){
 
 function main(){
     if(document.getElementsByClassName('btn-toolbar').length == 1){
-        // create resolve version button
+        // create resolve version button in dropdown
         var ul = document.getElementsByClassName("dropdown-menu ticket-menu-actions")[0];
         ul.removeAttribute("aria-expanded");
         var li = document.createElement("li");
@@ -142,8 +129,10 @@ function main(){
         li.appendChild(a);
         ul.appendChild(li);
 
+        // create initial modal
         createModal();
 
+        //if Resolve Version button clicked, clear modal contents then replace modal contents appropriately
         a.addEventListener('click', function(e){
             e.preventDefault();
             var sel = document.getElementById('resolve-body');
@@ -187,11 +176,10 @@ function resolve(){
         dropdown.appendChild(dselect);
         modalBody.appendChild(dropdown);
 
-        //var select = document.getElementById("form-select");
-        for(var cs=0; cs<versions.value.length; ++cs){
+        for(var n=0; n<versions.value.length; ++n){
             var option = document.createElement("option");
-            option.setAttribute("value", versions.value[cs]);
-            option.innerHTML = versions.name[cs];
+            option.setAttribute("value", versions.value[n].innerHTML);
+            option.innerHTML = versions.name[n].innerHTML;
             dselect.appendChild(option);
         }
 
@@ -203,86 +191,81 @@ function resolve(){
             putResolvedVersions(tickets, versionValue, versionName, len, xhr, parser);
         }
     }else{
-        //products don't match so repalce modal contents with error message
-        modalBody.innerHTML = "Ensure ticket products are the same before assigning them the same resolved version.<br /><b>Ticket # &emsp; &ensp; Product ID</b>" + versions;
+        //products don't match or no product exists, so replace modal contents with error message
+        modalBody.innerHTML = versions;
     }
 }
-
 
 function compareProducts(tickets, len, xhr, parser){
     // create array of product ids
     var products = new Array();
+    var errorMessage = "Ensure ticket products are the same before assigning them the same resolved version.<br /><b>Ticket # &emsp; &ensp; Product ID</b>";
 
     // get product of each of the tickets to ensure they are tickets for the same product
     for(var n=0; n<len; ++n){
         // get product id with XMLHttpRequest, then add it to the product id array
-        var queryURL = url + tickets[n];
-        xhr.open("GET", queryURL, false);
-        xhr.setRequestHeader('Authorization', 'Basic ' + btoa(orgID+':'+token));
+        var queryURL = url + "tickets/" + tickets[n];
+        xhr.open("GET", queryURL, false, orgID, token);
         xhr.send();
         var xmlDoc = parser.parseFromString(xhr.responseText,"text/xml");
         var productID = xmlDoc.getElementsByTagName("ProductID")[0].innerHTML;
-        products.push(productID);
 
-        //check if products are equal on each of the tickets
+        // return error message if product id doesn't exist in ticket
+        if(productID == ""){
+            return "No product assigned to the tickets.";
+        }
+
+        // add product id to products array and add ticket data to the error message
+        products.push(productID);
+        errorMessage += "<br />"+tickets[n] +"&emsp; &emsp; &emsp;" + products[n] + "";
+
+        //check if products are equal on the tickets
         if(products.length == 1){
             var prev = productID;
         }else if(productID == prev){
             continue;
         }else{
-            var errorMessage = "";
-            for(var k=0; k<len; ++k){
-                errorMessage += "<br />"+tickets[k] +"&emsp; &emsp; &emsp;" + products[k] + "";
-            }
             return errorMessage;
         }
     }
 
+    // all products are equal, so get versions
     var versions = getProductVersions(products[0], xhr, parser);
     return versions;
 }
-
 
 function getProductVersions(product, xhr, parser){
     //get product versions and parse through xml tags
     var versions = new Array();
     var versionValues = new Array();
-    var URL = "https://app.teamsupport.com/api/xml/Products/" + product + "/Versions";
-    xhr.open("GET", URL, false);
-    xhr.setRequestHeader('Authorization', 'Basic ' + btoa(orgID+':'+token));
+    var URL = url + "Products/" + product + "/Versions";
+    xhr.open("GET", URL, false, orgID, token);
     xhr.send();
     var xmlDoc = parser.parseFromString(xhr.responseText,"text/xml");
     var xmlVersionNames = xmlDoc.getElementsByTagName("VersionNumber");
     var xmlVersionID = xmlDoc.getElementsByTagName("ProductVersionID");
 
-    //place version names and id values into arrays
-    var length = xmlVersionNames.length;
-    for(var len=0; len<length;++len){
-        versions.push(xmlVersionNames[len].innerHTML);
-        versionValues.push(xmlVersionID[len].innerHTML);
-    }
-
     return {
-        name: versions,
-        value: versionValues
+        name: xmlVersionNames,
+        value: xmlVersionID
     };
 }
 
-
 function putResolvedVersions(tickets, versionValue, versionName, len, xhr, parser){
-    // loop through the tickets array and update their versions
-    for(var t=0; t<len; ++t){
-        var data =
-            '<Ticket>' +
+    var data =
+        '<Ticket>' +
             '<SolvedVersionID>' + versionValue + '</SolvedVersionID>' +
             '<SolvedVersion>' + versionName + '</SolvedVersion>'+
-            '</Ticket>';
-        var xmlData = parser.parseFromString(data,"text/xml");
-        var putURL = url + tickets[t];
-        xhr.open("PUT", putURL, true);
-        xhr.setRequestHeader('Authorization', 'Basic ' + btoa(orgID+':'+token));
+        '</Ticket>';
+    var xmlData = parser.parseFromString(data,"text/xml");
+
+    // loop through the tickets array and update their versions
+    for(var t=0; t<len; ++t){
+        var putURL = url + "tickets/" + tickets[t];
+        xhr.open("PUT", putURL, true, orgID, token);
         xhr.send(xmlData);
     }
+
     //force reload so website reflects resolved version change
     location.reload();
 }
