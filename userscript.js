@@ -262,7 +262,7 @@ function putResolvedVersions(tickets, versionValue, versionName, len, xhr, parse
     // loop through the tickets array and update their versions
     for(var t=0; t<len; ++t){
         var putURL = url + "tickets/" + tickets[t];
-        xhr.open("PUT", putURL, true, orgID, token);
+        xhr.open("PUT", putURL, false, orgID, token);
         xhr.send(xmlData);
     }
 
