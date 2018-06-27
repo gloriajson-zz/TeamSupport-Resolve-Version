@@ -35,7 +35,7 @@
 // ==/UserScript==
 
 // constants
-var url = "https://app.teamsupport.com/api/xml/tickets/";
+var url = "https://app.teamsupport.com/api/xml/";
 var orgID = "";
 var token = "";
 
@@ -198,8 +198,10 @@ function resolve(){
 
 function compareProducts(tickets, len, xhr, parser){
     // create array of product ids
+    var error = false;
     var products = new Array();
-    var errorMessage = "Ensure ticket products are the same before assigning them the same resolved version.<br /><b>Ticket # &emsp; &ensp; Product ID</b>";
+    var productNames = new Array();
+    var errorMessage = "Ensure ticket products are the same before assigning them the same resolved version.<br /><b>Ticket # &emsp; &ensp;Product</b>";
 
     // get product of each of the tickets to ensure they are tickets for the same product
     for(var n=0; n<len; ++n){
@@ -209,6 +211,7 @@ function compareProducts(tickets, len, xhr, parser){
         xhr.send();
         var xmlDoc = parser.parseFromString(xhr.responseText,"text/xml");
         var productID = xmlDoc.getElementsByTagName("ProductID")[0].innerHTML;
+        var productName = xmlDoc.getElementsByTagName("ProductName")[0].innerHTML;
 
         // return error message if product id doesn't exist in ticket
         if(productID == ""){
@@ -217,7 +220,8 @@ function compareProducts(tickets, len, xhr, parser){
 
         // add product id to products array and add ticket data to the error message
         products.push(productID);
-        errorMessage += "<br />"+tickets[n] +"&emsp; &emsp; &emsp;" + products[n] + "";
+        productNames.push(productName);
+        errorMessage += "<br />"+tickets[n] +"&emsp; &emsp; &emsp;" + productNames[n] + "";
 
         //check if products are equal on the tickets
         if(products.length == 1){
@@ -225,13 +229,17 @@ function compareProducts(tickets, len, xhr, parser){
         }else if(productID == prev){
             continue;
         }else{
-            return errorMessage;
+            error = true;
         }
     }
 
-    // all products are equal, so get versions
-    var versions = getProductVersions(products[0], xhr, parser);
-    return versions;
+    if(error){
+        return errorMessage;
+    }else{
+        // all products are equal, so get versions
+        var versions = getProductVersions(products[0], xhr, parser);
+        return versions;
+    }
 }
 
 function getProductVersions(product, xhr, parser){
@@ -267,5 +275,5 @@ function putResolvedVersions(tickets, versionValue, versionName, len, xhr, parse
     }
 
     //force reload so website reflects resolved version change
-    location.reload();
+    location.reload(true);
 }
