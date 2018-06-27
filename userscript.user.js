@@ -275,5 +275,5 @@ function putResolvedVersions(tickets, versionValue, versionName, len, xhr, parse
     }
 
     //force reload so website reflects resolved version change
-    location.reload(true);
+    location.reload();
 }
