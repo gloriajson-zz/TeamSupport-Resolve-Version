@@ -145,7 +145,7 @@ function main(){
 function resolve(){
     // get tickets that are selected and parse through the xml to add them to a ticket array
     var tickets = new Array();
-    var elements = document.getElementsByClassName('slick-cell l6 r6 ticket-grid-cell-ticketnumber selected');
+    var elements = document.querySelectorAll('[class$="ticket-grid-cell-ticketnumber selected"]');
     var len = elements.length;
     for(var i=0; i<len; ++i){
         var ele = elements[i].innerHTML;
