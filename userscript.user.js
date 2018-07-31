@@ -83,7 +83,7 @@ function createModal(){
     span.setAttribute("aria-hidden", true);
     span.innerHTML = "&times;";
     hbutton.appendChild(span);
-    modalHeader.appendChild(hbutton);
+    header.appendChild(hbutton);
 
     // create dropdown within modal body
     var modalBody = document.createElement("div");
