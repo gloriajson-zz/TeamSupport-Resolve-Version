@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         TeamSupport API
+// @name         Resolve Version API
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  Adds bulk Resolved Version for tickets in More dropdown
@@ -146,6 +146,17 @@ function resolve(){
     // get tickets that are selected and parse through the xml to add them to a ticket array
     var tickets = new Array();
     var elements = document.querySelectorAll('[class$="ticket-grid-cell-ticketnumber selected"]');
+
+    /*if(elements.length == 0 || elements == null){
+        for(var cc=0; cc<16; ++cc){
+            console.log("inside loop: "+cc);
+            var cell = 'slick-cell l'+cc+' r'+cc+' ticket-grid-cell-ticketnumber selected';
+            elements = document.getElementsByClassName(cell);
+            if(elements == null || elements.length == 0) continue;
+            else break;
+        }
+    }*/
+
     var len = elements.length;
     for(var i=0; i<len; ++i){
         var ele = elements[i].innerHTML;
