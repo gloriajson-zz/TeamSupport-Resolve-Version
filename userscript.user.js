@@ -13,10 +13,11 @@
 // @exclude      https://app.teamsupport.com/vcr/*/Pages/Search*
 // @exclude      https://app.teamsupport.com/vcr/*/Pages/WaterCooler*
 // @exclude      https://app.teamsupport.com/vcr/*/Pages/Calendar*
-// @exclude      https://app.teamsupport.com/vcr/*/Pages/Users*
+// @exclude      https://app.teamsupport.com/vcr/*/Pages/User*
 // @exclude      https://app.teamsupport.com/vcr/*/Pages/Groups*
 // @exclude      https://app.teamsupport.com/vcr/*/Pages/Customer*
 // @exclude      https://app.teamsupport.com/vcr/*/Pages/Product*
+// @exclude      https://app.teamsupport.com/vcr/*/Pages/Inventory*
 // @exclude      https://app.teamsupport.com/vcr/*/Pages/Asset*
 // @exclude      https://app.teamsupport.com/vcr/*/Pages/Report*
 // @exclude      https://app.teamsupport.com/vcr/*/TicketPreview*
