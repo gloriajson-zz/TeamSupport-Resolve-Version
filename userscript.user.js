@@ -30,8 +30,6 @@
 // @exclude      https://app.teamsupport.com/frontend*
 // @exclude      https://app.teamsupport.com/Frames*
 // @match        https://app.teamsupport.com/vcr/*
-// @require      //maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css
-// @require      https://cdn.jsdelivr.net/bootstrap.native/2.0.1/bootstrap-native.js
 
 // ==/UserScript==
 
@@ -39,6 +37,10 @@
 var url = "https://app.teamsupport.com/api/xml/";
 var orgID = "";
 var token = "";
+
+// initialize XMLHttpRequest and DOMParser
+var xhr = new XMLHttpRequest();
+var parser = new DOMParser();
 
 document.addEventListener('DOMContentLoaded', main(), false);
 
@@ -148,26 +150,12 @@ function resolve(){
     var tickets = new Array();
     var elements = document.querySelectorAll('[class$="ticket-grid-cell-ticketnumber selected"]');
 
-    /*if(elements.length == 0 || elements == null){
-        for(var cc=0; cc<16; ++cc){
-            console.log("inside loop: "+cc);
-            var cell = 'slick-cell l'+cc+' r'+cc+' ticket-grid-cell-ticketnumber selected';
-            elements = document.getElementsByClassName(cell);
-            if(elements == null || elements.length == 0) continue;
-            else break;
-        }
-    }*/
-
     var len = elements.length;
     for(var i=0; i<len; ++i){
         var ele = elements[i].innerHTML;
         var ticket = ele.substring(ele.indexOf(">")+1, ele.lastIndexOf("<"));
         tickets.push(ticket);
     }
-
-    // initialize XMLHttpRequest and DOMParser
-    var xhr = new XMLHttpRequest();
-    var parser = new DOMParser();
 
     // compare the ticket products and either get the product's versions or create a warning alert
     var versions = compareProducts(tickets, len, xhr, parser);
@@ -200,7 +188,7 @@ function resolve(){
             var sel = document.getElementById('form-select');
             var versionValue = sel.value;
             var versionName = sel.options[sel.selectedIndex].text;
-            putResolvedVersions(tickets, versionValue, versionName, len, xhr, parser);
+            putResolvedVersions(tickets, versionValue, versionName, len);
         }
     }else{
         //products don't match or no product exists, so replace modal contents with error message
@@ -254,7 +242,7 @@ function compareProducts(tickets, len, xhr, parser){
     }
 }
 
-function getProductVersions(product, xhr, parser){
+function getProductVersions(product){
     //get product versions and parse through xml tags
     var versions = new Array();
     var versionValues = new Array();
@@ -271,7 +259,7 @@ function getProductVersions(product, xhr, parser){
     };
 }
 
-function putResolvedVersions(tickets, versionValue, versionName, len, xhr, parser){
+async function putResolvedVersions(tickets, versionValue, versionName, len){
     var data =
         '<Ticket>' +
             '<SolvedVersionID>' + versionValue + '</SolvedVersionID>' +
